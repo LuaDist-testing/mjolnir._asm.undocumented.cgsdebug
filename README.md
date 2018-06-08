@@ -1,29 +1,116 @@
-mjolnir._asm.undocumented
-=========================
+mjolnir._asm.undocumented.cgsdebug
+==================================
 
-Organizational space for Mjolnir modules using undocumented or Private APIs.  To the best of my knowledge, all other modules I've created use only standard, stock OSX API functionality.  Since a large number were ported from a previous project that led to Mjolnir, I can't say that with absolute certainty, but it is certainly what I aim for.
+Functions to get and set undocumented options and features within OS X.  These are undocumented features from the "private" api's for Mac OS X and are not guaranteed to work with any particular version of OS X or at all.  This code was based primarily on code samples and segments found at (https://code.google.com/p/undocumented-goodness/) and (https://code.google.com/p/iterm2/source/browse/branches/0.10.x/CGSInternal/CGSDebug.h?r=2).
 
-Any module I knowingly create which uses any undocumented or private API will be listed here.
+This submodule provides access to CGSDebug related features.  Most notably, this contains the hydra.shadow(bool) functionality, and a specific function is provided for just that functionality.
 
-Because these use undocumented features, the mantra "Caveat Emptor" rings even more true than usual.  I make no claims or guarantees that these will work for you or that they will work with any past, present, or future version of OS X.  All I will state is that they do not crash on my primary machine, which is a MacBook Pro running 10.10pb2, and that they provide at least some of the desired functions (or else why bother?) for me.
+I make no promises that these will work for you or work at all with any, past, current, or future versions of OS X.  I can confirm only that they didn't crash my machine during testing under 10.10pb2. You have been warned.
 
-I hope they do for you as well, but re-read the above paragraph and the License, and decide for yourself.
+### Luarocks Install
+~~~bash
+$ luarocks [--tree=mjolnir] install mjolnir._asm.undocumented.cgsdebug
+~~~
 
-Most of these features currently come from one or both of the following sources:
+### Local Install
+~~~bash
+$ git clone https://github.com/asmagill/mjolnir_asm.undocumented
+$ cd mjolnir_asm.undocumented/cgsdebug
+$ [PREFIX=/usr/local] make install
+~~~
 
- 1. [Undocumented Goodness](https://code.google.com/p/undocumented-goodness/)
- 2. [iTerm2's CGSInternal folder](https://github.com/gnachman/iterm2)
+### Require
 
-### Sub Modules (See folder README.md)
-The following submodules are located in this repository for organizational purposes.  In most cases, they do not require this base or the other submodules.  Where this is not the case, the README in the repository folder will make this clear and if you install them via Luarocks, dependancies will be taken care of for you.
+~~~lua
+cgsdebug = require("mjolnir._asm.undocumented.cgsdebug")
+~~~
 
-|Module                              | Available | Description                                                                |
-|:-----------------------------------|:---------:|:---------------------------------------------------------------------------|
-|mjolnir._asm.undocumented.bluetooth | Luarocks  | Toggle bluetooth power and discoverability.                                |
-|mjolnir._asm.undocumented.cgsdebug  | Luarocks  | Includes Hydra's hydra.shadow function and other _windowserver debug stuff |
-|mjolnir._asm.undocumented.coredock  | Luarocks  | Manipulate Dock features including position, tilesize, etc.                |
+### Functions
 
-**NOTE: README's for in progress modules may mention luarocks, but may or may not actually be there.  Be patient, or check the README file for how to compile them yourself.**
+~~~lua
+cgsdebug.get(option) -> boolean
+~~~
+Returns a boolean indicating whether the specified CGSDebug option is set or not.
+
+~~~lua
+cgsdebug.set(option, boolean)
+~~~
+Enables (value == true) or disables (value == false) the specified CGSDebug option.
+
+~~~lua
+cgsdebug.clear()
+~~~
+Clears all of the CGSDebug option flags.
+
+~~~lua
+cgsdebug.getmask() -> number
+~~~
+Returns the numeric value representing the bitmask of all currently set CGSDebug options.
+
+~~~lua
+cgsdebug.shadow(bool)
+~~~
+Sets whether OSX apps have shadows.
+
+### Variables
+
+~~~lua
+cgsdebug.options[]
+~~~
+Connivence array of all currently defined debug options.
+
+    flashScreenUpdates
+        All screen updates are flashed in yellow. Regions under a DisableUpdate are flashed in orange. Regions that are hardware accellerated are painted green.
+
+    colorByAccelleration
+        Colors windows green if they are accellerated, otherwise red. Doesn't cause things to refresh properly - leaves excess rects cluttering the screen.
+
+    noShadows
+        Disables shadows on all windows.
+
+    noDelayAfterFlash
+        Setting this disables the pause after a flash when using FlashScreenUpdates or FlashIdenticalUpdates.
+
+    autoflushDrawing
+        Flushes the contents to the screen after every drawing operation.
+
+    showMouseTrackingAreas
+        Highlights mouse tracking areas. Doesn't cause things to refresh correctly - leaves excess rectangles cluttering the screen.
+
+    flashIdenticalUpdates
+        Flashes identical updates in red.
+
+    dumpWindowListToFile
+        Dumps a list of windows to /tmp/WindowServer.winfo.out. This is what Quartz Debug uses to get the window list.
+
+    dumpConnectionListToFile
+        Dumps a list of connections to /tmp/WindowServer.cinfo.out.
+
+    verboseLogging
+        Dumps a very verbose debug log of the WindowServer to /tmp/CGLog_WinServer_<PID>.
+
+    verboseLoggingAllApps
+        Dumps a very verbose debug log of all processes to /tmp/CGLog_<NAME>_<PID>.
+
+    dumpHotKeyListToFile
+        Dumps a list of hotkeys to /tmp/WindowServer.keyinfo.out.
+
+    dumpSurfaceInfo
+        Dumps SurfaceInfo? to /tmp/WindowServer.sinfo.out
+
+    dumpOpenGLInfoToFile
+        Dumps information about OpenGL extensions, etc to /tmp/WindowServer.glinfo.out.
+
+    dumpShadowListToFile
+        Dumps a list of shadows to /tmp/WindowServer.shinfo.out.
+
+    dumpWindowListToPlist
+        Dumps a list of windows to `/tmp/WindowServer.winfo.plist`. This is what Quartz Debug on 10.5 uses to get the window list.
+
+    dumpResourceUsageToFiles
+        Dumps information about an application's resource usage to `/tmp/CGResources_<NAME>_<PID>`.
+
+
 
 ### License
 
@@ -31,9 +118,20 @@ The following submodules are located in this repository for organizational purpo
 >
 > Copyright (c) 2014 Aaron Magill
 >
-> Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
 >
-> The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+> The above copyright notice and this permission notice shall be included in
+> all copies or substantial portions of the Software.
 >
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
->
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+> THE SOFTWARE.
